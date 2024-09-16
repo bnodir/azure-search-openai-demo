@@ -1,7 +1,18 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { Checkbox, Panel, DefaultButton, Spinner, TextField, ICheckboxProps, ITextFieldProps } from "@fluentui/react";
+import {
+    Checkbox,
+    Panel,
+    DefaultButton,
+    Spinner,
+    TextField,
+    ICheckboxProps,
+    ITextFieldProps,
+    Dropdown,
+    IDropdownOption,
+    IDropdownProps
+} from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 
 import styles from "./Ask.module.css";
@@ -39,6 +50,7 @@ export function Component(): JSX.Element {
     const [useGPT4V, setUseGPT4V] = useState<boolean>(false);
     const [gpt4vInput, setGPT4VInput] = useState<GPT4VInput>(GPT4VInput.TextAndImages);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
+    const [includeCategory, setIncludeCategory] = useState<string>("");
     const [question, setQuestion] = useState<string>("");
     const [vectorFieldList, setVectorFieldList] = useState<VectorFieldOptions[]>([VectorFieldOptions.Embedding, VectorFieldOptions.ImageEmbedding]);
     const [useOidSecurityFilter, setUseOidSecurityFilter] = useState<boolean>(false);
@@ -121,6 +133,7 @@ export function Component(): JSX.Element {
                         prompt_template_prefix: promptTemplatePrefix.length === 0 ? undefined : promptTemplatePrefix,
                         prompt_template_suffix: promptTemplateSuffix.length === 0 ? undefined : promptTemplateSuffix,
                         exclude_category: excludeCategory.length === 0 ? undefined : excludeCategory,
+                        include_category: includeCategory.length === 0 ? undefined : includeCategory,
                         top: retrieveCount,
                         temperature: temperature,
                         minimum_reranker_score: minimumRerankerScore,
@@ -185,6 +198,10 @@ export function Component(): JSX.Element {
         setExcludeCategory(newValue || "");
     };
 
+    const onIncludeCategoryChanged = (_ev?: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+        setIncludeCategory((option?.key as string) || "");
+    };
+
     const onExampleClicked = (example: string) => {
         makeApiRequest(example);
         setQuestion(example);
@@ -230,6 +247,8 @@ export function Component(): JSX.Element {
     const retrieveCountFieldId = useId("retrieveCountField");
     const excludeCategoryId = useId("excludeCategory");
     const excludeCategoryFieldId = useId("excludeCategoryField");
+    const includeCategoryId = useId("includeCategory");
+    const includeCategoryFieldId = useId("includeCategoryField");
     const semanticRankerId = useId("semanticRanker");
     const semanticRankerFieldId = useId("semanticRankerField");
     const semanticCaptionsId = useId("semanticCaptions");
@@ -239,6 +258,11 @@ export function Component(): JSX.Element {
     const useGroupsSecurityFilterId = useId("useGroupsSecurityFilter");
     const useGroupsSecurityFilterFieldId = useId("useGroupsSecurityFilterField");
     const { t, i18n } = useTranslation();
+
+    const includeCategoryOptions: IDropdownOption[] = [
+        { key: "ShogiGuide", text: t("labels.includeCategoryOptions.ShogiGuide") },
+        { key: "ShogiKifFiles", text: t("labels.includeCategoryOptions.ShogiKifFiles") }
+    ];
 
     return (
         <div className={styles.askContainer}>
@@ -419,6 +443,24 @@ export function Component(): JSX.Element {
                             labelId={excludeCategoryId}
                             fieldId={excludeCategoryFieldId}
                             helpText={t("helpTexts.excludeCategory")}
+                            label={props?.label}
+                        />
+                    )}
+                />
+
+                <Dropdown
+                    id={includeCategoryFieldId}
+                    className={styles.chatSettingsSeparator}
+                    label={t("labels.includeCategory")}
+                    selectedKey={includeCategory}
+                    onChange={onIncludeCategoryChanged}
+                    aria-labelledby={includeCategoryId}
+                    options={includeCategoryOptions}
+                    onRenderLabel={(props: IDropdownProps | undefined) => (
+                        <HelpCallout
+                            labelId={includeCategoryId}
+                            fieldId={includeCategoryFieldId}
+                            helpText={t("helpTexts.includeCategory")}
                             label={props?.label}
                         />
                     )}

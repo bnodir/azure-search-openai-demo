@@ -7,10 +7,12 @@ import { ChatAppResponse } from "../../api";
 import { AnalysisPanelTabs } from "./AnalysisPanelTabs";
 import { ThoughtProcess } from "./ThoughtProcess";
 import { MarkdownViewer } from "../MarkdownViewer";
+import { ShogiKifViewer } from "../ShogiKifViewer";
 import { useMsal } from "@azure/msal-react";
 import { getHeaders } from "../../api";
 import { useLogin, getToken } from "../../authConfig";
 import { useState, useEffect } from "react";
+import { KifuLite } from "Kifu-for-JS";
 
 interface Props {
     className: string;
@@ -27,7 +29,10 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
     const isDisabledThoughtProcessTab: boolean = !answer.context.thoughts;
     const isDisabledSupportingContentTab: boolean = !answer.context.data_points;
     const isDisabledCitationTab: boolean = !activeCitation;
+    // const isDisabledShogiTab: boolean = !answer.context.kif;
+    const isDisabledShogiTab: boolean = false;
     const [citation, setCitation] = useState("");
+    const [fileContent, setFileContent] = useState("");
 
     const client = useLogin ? useMsal().instance : undefined;
     const { t } = useTranslation();
@@ -66,6 +71,8 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
                 return <img src={citation} className={styles.citationImg} alt="Citation Image" />;
             case "md":
                 return <MarkdownViewer src={activeCitation} />;
+            case "kif":
+                return <ShogiKifViewer src={activeCitation} onChange={setFileContent} />;
             default:
                 return <iframe title="Citation" src={citation} width="100%" height={citationHeight} />;
         }
@@ -90,6 +97,13 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
                 headerButtonProps={isDisabledSupportingContentTab ? pivotItemDisabledStyle : undefined}
             >
                 <SupportingContent supportingContent={answer.context.data_points} />
+            </PivotItem>
+            <PivotItem
+                itemKey={AnalysisPanelTabs.ShogiTab}
+                headerText={t("headerTexts.shogiKifPlayer")}
+                headerButtonProps={isDisabledShogiTab ? pivotItemDisabledStyle : undefined}
+            >
+                <KifuLite kifu={fileContent} />
             </PivotItem>
             <PivotItem
                 itemKey={AnalysisPanelTabs.CitationTab}

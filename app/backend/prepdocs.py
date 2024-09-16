@@ -179,6 +179,7 @@ def setup_file_processors(
     return {
         ".pdf": FileProcessor(pdf_parser, sentence_text_splitter),
         ".html": FileProcessor(html_parser, sentence_text_splitter),
+        ".mhtml": FileProcessor(html_parser, sentence_text_splitter),
         ".json": FileProcessor(JsonParser(), SimpleTextSplitter()),
         ".docx": FileProcessor(doc_int_parser, sentence_text_splitter),
         ".pptx": FileProcessor(doc_int_parser, sentence_text_splitter),
@@ -191,6 +192,7 @@ def setup_file_processors(
         ".heic": FileProcessor(doc_int_parser, sentence_text_splitter),
         ".md": FileProcessor(TextParser(), sentence_text_splitter),
         ".txt": FileProcessor(TextParser(), sentence_text_splitter),
+        ".kif": FileProcessor(TextParser(), sentence_text_splitter),
     }
 
 

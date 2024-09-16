@@ -1,7 +1,12 @@
 import { useRef, useState, useEffect, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { Checkbox, Panel, DefaultButton, TextField, ITextFieldProps, ICheckboxProps } from "@fluentui/react";
+import { Checkbox, Panel, DefaultButton, TextField, ITextFieldProps, ICheckboxProps, Dropdown, IDropdownOption, IDropdownProps } from "@fluentui/react";
+
+interface IExtendedDropdownOption extends IDropdownOption {
+    description?: string;
+}
+
 import { SparkleFilled } from "@fluentui/react-icons";
 import { useId } from "@fluentui/react-hooks";
 import readNDJSONStream from "ndjson-readablestream";
@@ -39,18 +44,21 @@ import { LanguagePicker } from "../../i18n/LanguagePicker";
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
-    const [promptTemplate, setPromptTemplate] = useState<string>("");
+    const [promptTemplate, setPromptTemplate] = useState<string | undefined>(undefined);
+    const [selectedKey, setSelectedKey] = useState<string>("1");
+    const [isCustomTemplate, setIsCustomTemplate] = useState<boolean>(false);
     const [temperature, setTemperature] = useState<number>(0.3);
     const [seed, setSeed] = useState<number | null>(null);
     const [minimumRerankerScore, setMinimumRerankerScore] = useState<number>(0);
     const [minimumSearchScore, setMinimumSearchScore] = useState<number>(0);
-    const [retrieveCount, setRetrieveCount] = useState<number>(3);
+    const [retrieveCount, setRetrieveCount] = useState<number>(10);
     const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(RetrievalMode.Hybrid);
-    const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
+    const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(false);
     const [shouldStream, setShouldStream] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
-    const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(false);
+    const [includeCategory, setIncludeCategory] = useState<string>("");
+    const [useSuggestFollowupQuestions, setUseSuggestFollowupQuestions] = useState<boolean>(true);
     const [vectorFieldList, setVectorFieldList] = useState<VectorFieldOptions[]>([VectorFieldOptions.Embedding]);
     const [useOidSecurityFilter, setUseOidSecurityFilter] = useState<boolean>(false);
     const [useGroupsSecurityFilter, setUseGroupsSecurityFilter] = useState<boolean>(false);
@@ -131,7 +139,7 @@ const Chat = () => {
                 if (event["context"] && event["context"]["data_points"]) {
                     event["message"] = event["delta"];
                     askResponse = event as ChatAppResponse;
-                } else if (event["delta"]["content"]) {
+                } else if (event["delta"] && event["delta"]["content"]) {
                     setIsLoading(false);
                     await updateState(event["delta"]["content"]);
                 } else if (event["context"]) {
@@ -174,8 +182,9 @@ const Chat = () => {
                 messages: [...messages, { content: question, role: "user" }],
                 context: {
                     overrides: {
-                        prompt_template: promptTemplate.length === 0 ? undefined : promptTemplate,
+                        prompt_template: !promptTemplate || promptTemplate.length === 0 ? undefined : promptTemplate,
                         exclude_category: excludeCategory.length === 0 ? undefined : excludeCategory,
+                        include_category: includeCategory.length === 0 ? undefined : includeCategory,
                         top: retrieveCount,
                         temperature: temperature,
                         minimum_reranker_score: minimumRerankerScore,
@@ -240,8 +249,34 @@ const Chat = () => {
         getConfig();
     }, []);
 
-    const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
+    const onPromptTemplateChange = (_ev?: React.FormEvent<HTMLDivElement | HTMLTextAreaElement>, option?: IExtendedDropdownOption) => {
+        if (option?.key === "custom") {
+            setIsCustomTemplate(true);
+            setPromptTemplate("");
+        } else {
+            setIsCustomTemplate(false);
+            setSelectedKey(option?.key as string);
+            setPromptTemplate(option?.description as string);
+        }
+    };
+
+    const onCustomTemplateChange = (_ev?: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string) => {
         setPromptTemplate(newValue || "");
+    };
+
+    const getIncludeCategoryOptions = () => {
+        switch (selectedKey) {
+            case "1":
+                return includeCategoryOptionsTemplate1;
+            case "2":
+                return includeCategoryOptionsTemplate2;
+            case "3":
+                return includeCategoryOptionsTemplate3;
+            case "custom":
+                return includeCategoryOptionsTemplateCustom;
+            default:
+                return [];
+        }
     };
 
     const onTemperatureChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
@@ -277,7 +312,20 @@ const Chat = () => {
     };
 
     const onExcludeCategoryChanged = (_ev?: React.FormEvent, newValue?: string) => {
-        setExcludeCategory(newValue || "");
+        switch (selectedKey) {
+            case "1":
+                return includeCategoryOptionsTemplate1;
+            case "2":
+                return includeCategoryOptionsTemplate2;
+            case "3":
+                return includeCategoryOptionsTemplate3;
+            default:
+                return [];
+        }
+    };
+
+    const onIncludeCategoryChanged = (_ev?: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
+        setIncludeCategory((option?.key as string) || "");
     };
 
     const onUseSuggestFollowupQuestionsChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -332,6 +380,8 @@ const Chat = () => {
     const retrieveCountFieldId = useId("retrieveCountField");
     const excludeCategoryId = useId("excludeCategory");
     const excludeCategoryFieldId = useId("excludeCategoryField");
+    const includeCategoryId = useId("includeCategory");
+    const includeCategoryFieldId = useId("includeCategoryField");
     const semanticRankerId = useId("semanticRanker");
     const semanticRankerFieldId = useId("semanticRankerField");
     const semanticCaptionsId = useId("semanticCaptions");
@@ -345,6 +395,32 @@ const Chat = () => {
     const shouldStreamId = useId("shouldStream");
     const shouldStreamFieldId = useId("shouldStreamField");
     const { t, i18n } = useTranslation();
+
+    const promptTemplateOptions: IExtendedDropdownOption[] = [
+        { key: "1", text: t("systemPrompt.1.title"), description: t("systemPrompt.1.description") },
+        { key: "2", text: t("systemPrompt.2.title"), description: t("systemPrompt.2.description") },
+        { key: "3", text: t("systemPrompt.3.title"), description: t("systemPrompt.3.description") },
+        { key: "custom", text: "Custom", description: "Custom description" }
+    ];
+
+    const includeCategoryOptionsTemplate1: IDropdownOption[] = [
+        { key: "ShogiGuide", text: t("labels.includeCategoryOptions.ShogiGuide") },
+        { key: "ShogiKifFiles", text: t("labels.includeCategoryOptions.ShogiKifFiles") },
+        { key: "ShogiVocabulary", text: t("labels.includeCategoryOptions.ShogiVocabulary") }
+    ];
+
+    const includeCategoryOptionsTemplate2: IDropdownOption[] = [{ key: "Adverbs", text: t("labels.includeCategoryOptions.Adverbs") }];
+
+    const includeCategoryOptionsTemplate3: IDropdownOption[] = [{ key: "Contoso", text: t("labels.includeCategoryOptions.Contoso") }];
+
+    const includeCategoryOptionsTemplateCustom: IDropdownOption[] = [{ key: "", text: "" }];
+
+    const placeholders: { [key: string]: string } = {
+        1: t("defaultExamples.1.placeholder"),
+        2: t("defaultExamples.2.placeholder"),
+        3: t("defaultExamples.3.placeholder"),
+        custom: t("defaultExamples.4.placeholder")
+    };
 
     return (
         <div className={styles.container}>
@@ -366,7 +442,7 @@ const Chat = () => {
                             <h2 className={styles.chatEmptyStateSubtitle}>{t("chatEmptyStateSubtitle")}</h2>
                             {showLanguagePicker && <LanguagePicker onLanguageChange={newLang => i18n.changeLanguage(newLang)} />}
 
-                            <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} />
+                            <ExampleList onExampleClicked={onExampleClicked} useGPT4V={useGPT4V} promptTemplateKey={selectedKey} />
                         </div>
                     ) : (
                         <div className={styles.chatMessageStream}>
@@ -439,7 +515,7 @@ const Chat = () => {
                     <div className={styles.chatInput}>
                         <QuestionInput
                             clearOnSend
-                            placeholder={t("defaultExamples.placeholder")}
+                            placeholder={placeholders[selectedKey] || "Type a new question"}
                             disabled={isLoading}
                             onSend={question => makeApiRequest(question)}
                             showSpeechInput={showSpeechInput}
@@ -467,16 +543,15 @@ const Chat = () => {
                     onRenderFooterContent={() => <DefaultButton onClick={() => setIsConfigPanelOpen(false)}>{t("labels.closeButton")}</DefaultButton>}
                     isFooterAtBottom={true}
                 >
-                    <TextField
+                    <Dropdown
                         id={promptTemplateFieldId}
                         className={styles.chatSettingsSeparator}
-                        defaultValue={promptTemplate}
+                        selectedKey={isCustomTemplate ? "custom" : selectedKey}
                         label={t("labels.promptTemplate")}
-                        multiline
-                        autoAdjustHeight
+                        options={promptTemplateOptions}
                         onChange={onPromptTemplateChange}
                         aria-labelledby={promptTemplateId}
-                        onRenderLabel={(props: ITextFieldProps | undefined) => (
+                        onRenderLabel={(props: IDropdownProps | undefined) => (
                             <HelpCallout
                                 labelId={promptTemplateId}
                                 fieldId={promptTemplateFieldId}
@@ -485,6 +560,27 @@ const Chat = () => {
                             />
                         )}
                     />
+
+                    {isCustomTemplate && (
+                        <TextField
+                            id={promptTemplateFieldId}
+                            className={styles.chatSettingsSeparator}
+                            value={promptTemplate}
+                            label={t("labels.customPromptTemplate")}
+                            multiline
+                            autoAdjustHeight
+                            onChange={onCustomTemplateChange}
+                            aria-labelledby={promptTemplateId}
+                            onRenderLabel={(props: ITextFieldProps | undefined) => (
+                                <HelpCallout
+                                    labelId={promptTemplateId}
+                                    fieldId={promptTemplateFieldId}
+                                    helpText={t("helpTexts.customPromptTemplate")}
+                                    label={props?.label}
+                                />
+                            )}
+                        />
+                    )}
 
                     <TextField
                         id={temperatureFieldId}
@@ -585,6 +681,24 @@ const Chat = () => {
                                 labelId={excludeCategoryId}
                                 fieldId={excludeCategoryFieldId}
                                 helpText={t("helpTexts.excludeCategory")}
+                                label={props?.label}
+                            />
+                        )}
+                    />
+
+                    <Dropdown
+                        id={includeCategoryFieldId}
+                        className={styles.chatSettingsSeparator}
+                        label={t("labels.includeCategory")}
+                        selectedKey={includeCategory}
+                        onChange={onIncludeCategoryChanged}
+                        aria-labelledby={includeCategoryId}
+                        options={getIncludeCategoryOptions()}
+                        onRenderLabel={(props: IDropdownProps | undefined) => (
+                            <HelpCallout
+                                labelId={includeCategoryId}
+                                fieldId={includeCategoryFieldId}
+                                helpText={t("helpTexts.includeCategory")}
                                 label={props?.label}
                             />
                         )}

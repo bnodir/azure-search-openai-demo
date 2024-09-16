@@ -1,6 +1,8 @@
 import re
 from typing import IO, AsyncGenerator
 
+from charset_normalizer import from_bytes
+
 from .page import Page
 from .parser import Parser
 
@@ -24,7 +26,17 @@ class TextParser(Parser):
     """Parses simple text into a Page object."""
 
     async def parse(self, content: IO) -> AsyncGenerator[Page, None]:
+        # read the content
         data = content.read()
-        decoded_data = data.decode("utf-8")
+
+        # detect the encoding
+        result = from_bytes(data).best()
+        encoding = result.encoding if result else None
+
+        if encoding is None:
+            raise ValueError("Unable to detect encoding for the file content")
+
+        # decode the content using the detected encoding
+        decoded_data = data.decode(encoding)
         text = cleanup_data(decoded_data)
         yield Page(0, 0, text=text)

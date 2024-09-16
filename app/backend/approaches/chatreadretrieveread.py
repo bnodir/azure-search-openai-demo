@@ -97,6 +97,7 @@ class ChatReadRetrieveReadApproach(ChatApproach):
         minimum_search_score = overrides.get("minimum_search_score", 0.0)
         minimum_reranker_score = overrides.get("minimum_reranker_score", 0.0)
         filter = self.build_filter(overrides, auth_claims)
+        # language =  overrides.get("language", "en")
 
         original_user_query = messages[-1]["content"]
         if not isinstance(original_user_query, str):
@@ -129,7 +130,7 @@ class ChatReadRetrieveReadApproach(ChatApproach):
             model=self.chatgpt_model,
             system_prompt=self.query_prompt_template,
             tools=tools,
-            few_shots=self.query_prompt_few_shots,
+            # few_shots=self.query_prompt_few_shots,
             past_messages=messages[:-1],
             new_user_content=user_query_request,
             max_tokens=self.chatgpt_token_limit - query_response_token_limit,
@@ -166,6 +167,7 @@ class ChatReadRetrieveReadApproach(ChatApproach):
             use_semantic_captions,
             minimum_search_score,
             minimum_reranker_score,
+            # language
         )
 
         sources_content = self.get_sources_content(results, use_semantic_captions, use_image_citation=False)
@@ -213,6 +215,8 @@ class ChatReadRetrieveReadApproach(ChatApproach):
                         "filter": filter,
                         "use_vector_search": use_vector_search,
                         "use_text_search": use_text_search,
+                        # "search_query_language": language,
+                        # "search_query_speller": self.query_speller,
                     },
                 ),
                 ThoughtStep(

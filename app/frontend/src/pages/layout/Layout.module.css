@@ -5,8 +5,8 @@
 }
 
 .header {
-    background-color: #222222;
-    color: #f2f2f2;
+    background: linear-gradient(to right, rgb(223, 130, 138), rgb(179, 111, 169), rgb(105, 104, 164), rgb(101, 161, 156));
+    color: white;
 }
 
 .headerContainer {
@@ -19,9 +19,10 @@
 }
 
 .headerTitleContainer {
+    height: 1.5rem;
     display: flex;
     align-items: center;
-    color: #f2f2f2;
+    color: white;
     text-decoration: none;
 }
 
@@ -35,47 +36,78 @@
     font-weight: 600;
 }
 
-.headerNavList {
-    z-index: 100;
-    display: none;
+.navItem {
+    margin: 0.5rem 0; /* Add a margin of 0.5rem above and below each item */
+}
+
+.headerNavListContainer {
+    display: none; /* Initially hidden */
     flex-direction: column;
-    background-color: #222222;
     position: absolute;
     top: 2.7rem;
     right: 0;
-    width: auto;
-    list-style: none;
-    padding: 1.1rem;
-    align-items: flex-end;
+    width: auto; /* Change width to auto */
+    background-color: white; /* Set the navigation list background color to white */
+    padding: 1rem; /* Add inner padding */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a light shadow */
+    z-index: 100;
 }
 
-.headerNavList.show {
+.headerNavListContainer.show {
     display: flex; /* Show when toggled */
+}
+
+.headerNavList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 .headerNavPageLink {
     padding: 1rem;
-    border-bottom: 1px solid #333;
     text-align: right;
-    color: #f2f2f2;
+    color: black;
     text-decoration: none;
     opacity: 0.75;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-    transition-duration: 500ms;
-    transition-property: opacity;
-    font-size: 1.2rem;
+    width: 100%; /* Set width to 100% */
+    font-size: 1rem;
+}
+
+.headerNavPageLinkActive {
+    padding: 1rem;
+    text-align: right;
+    color: black;
+    text-decoration: none;
+    opacity: 1;
+    width: 100%; /* Set width to 100% */
+    box-sizing: border-box; /* Include padding and border in size calculation */
+    font-size: 1rem;
+    background-color: lightgray; /* Set background color to a slightly different color */
+    border-radius: 4px;
+}
+
+.navButton {
+    padding: 8px 16px; /* Button padding */
+    background-color: transparent; /* Set button background color to transparent */
+    color: white; /* Button text color */
+    border-radius: 4px; /* Round the button corners */
+    text-align: center; /* Center the text */
+    text-decoration: none; /* Disable text decoration */
+    cursor: pointer; /* Change cursor to pointer */
+    font-size: 1rem; /* Font size */
+    font-weight: bold; /* Bold text */
+}
+
+.navButton:hover {
+    background-color: darkblue; /* Background color on hover */
+    color: white; /* Text color on hover */
 }
 
 .headerNavPageLink:hover {
     opacity: 1;
-}
-
-.headerNavPageLinkActive {
-    color: #f2f2f2;
-    text-decoration: none;
-    font-size: 1.2rem;
-    text-align: right;
-    padding: 1rem;
 }
 
 .headerNavLeftMargin {
@@ -91,10 +123,10 @@
     display: block;
     background: none;
     border: none;
-    color: #f2f2f2;
+    color: white;
     font-size: 1.5rem;
     cursor: pointer;
-    z-index: 101;
+    z-index: auto;
 }
 
 .loginMenuContainer {
@@ -108,19 +140,30 @@
         font-weight: 600;
     }
 
-    .headerNavList {
-        display: flex;
+    .headerNavListContainer {
+        display: flex; /* Always display on larger screens */
         flex-direction: row;
-        list-style: none;
-        padding: 0;
-        position: static;
-        width: auto;
+        background-color: transparent; /* Set background to transparent on larger screens */
+        position: static; /* Static positioning */
+        width: auto; /* Auto width */
+        box-shadow: none; /* Remove shadow */
     }
 
-    .headerNavPageLink {
+    .headerNavList {
+        flex-direction: row; /* Horizontal alignment */
+        align-items: center; /* Align to center */
+    }
+
+    .navItem {
+        margin: 0 1rem; /* Add a margin of 1rem to the left and right of each item */
+    }
+
+    .headerNavPageLink,
+    .headerNavPageLinkActive {
         border-bottom: none;
         padding: 0;
         display: block;
+        text-align: center; /* Align to center on larger screens */
     }
 
     .headerNavPageLink:hover {
@@ -128,8 +171,9 @@
     }
 
     .headerNavPageLinkActive {
-        color: #f2f2f2;
-        text-decoration: none;
+        color: white;
+        background-color: transparent; /* Set background color to the same as the header */
+        font-weight: bold; /* Bold when active on larger screens */
     }
 
     .headerNavLeftMargin {

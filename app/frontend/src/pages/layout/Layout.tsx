@@ -42,26 +42,38 @@ const Layout = () => {
                         <h3 className={styles.headerTitle}>{t("headerTitle")}</h3>
                     </Link>
                     <nav>
-                        <ul className={`${styles.headerNavList} ${menuOpen ? styles.show : ""}`}>
-                            <li>
-                                <NavLink
-                                    to="/"
-                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    {t("chat")}
-                                </NavLink>
-                            </li>
-                            <li>
-                                <NavLink
-                                    to="/qa"
-                                    className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    {t("qa")}
-                                </NavLink>
-                            </li>
-                        </ul>
+                        <div className={`${styles.headerNavListContainer} ${menuOpen ? styles.show : ""}`}>
+                            <ul className={styles.headerNavList}>
+                                <li className={styles.navItem}>
+                                    <NavLink
+                                        to="/"
+                                        className={({ isActive }) => (isActive ? `${styles.headerNavPageLinkActive}` : `${styles.headerNavPageLink}`)}
+                                        onClick={() => setMenuOpen(false)}
+                                    >
+                                        {t("chat")}
+                                    </NavLink>
+                                </li>
+                                <li className={styles.navItem}>
+                                    <NavLink
+                                        to="/qa"
+                                        className={({ isActive }) => (isActive ? `${styles.headerNavPageLinkActive}` : `${styles.headerNavPageLink}`)}
+                                        onClick={() => setMenuOpen(false)}
+                                    >
+                                        {t("qa")}
+                                    </NavLink>
+                                </li>
+                                <li className={styles.navItem}>
+                                    <a
+                                        href="https://github.com/bnodir/azure-search-openai-demo.git"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${styles.headerNavPageLink}`}
+                                    >
+                                        {t("feedback")}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </nav>
                     <div className={styles.loginMenuContainer}>
                         {useLogin && <LoginButton />}

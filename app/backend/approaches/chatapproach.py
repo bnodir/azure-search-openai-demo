@@ -26,14 +26,10 @@ class ChatApproach(Approach, ABC):
     Make sure the last question ends with ">>".
     """
 
-    query_prompt_template = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
-    You have access to Azure AI Search index with 100's of documents.
-    Generate a search query based on the conversation and the new question.
-    Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
-    Do not include any text inside [] or <<>> in the search query terms.
-    Do not include any special characters like '+'.
-    If the question is not in English, translate the question to English before generating the search query.
-    If you cannot generate a search query, return just the number 0.
+    query_prompt_template = """To respond to a user query, you need to refer to a knowledge base. You have access to an Azure AI Search index containing hundreds of documents. Develop a search query based on the user's question.
+    Do not include any text enclosed in brackets [] or pointy brackets <<>>.
+    Exclude special characters like '+' from your search query.
+    If you are unable to generate a search query, simply return the number 0.
     """
 
     @property
