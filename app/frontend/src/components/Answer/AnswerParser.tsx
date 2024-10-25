@@ -8,7 +8,7 @@ type HtmlParsedAnswer = {
 
 // Function to validate citation format and check if dataPoint starts with possible citation
 function isCitationValid(contextDataPoints: any, citationCandidate: string): boolean {
-    const regex = /^[^\s]+\.[a-zA-Z0-9]+/;
+    const regex = /^[^\s]+(\s[^\s]+)*\.[a-zA-Z0-9]+(#.*)?$/;
     if (!regex.test(citationCandidate)) {
         return false;
     }
